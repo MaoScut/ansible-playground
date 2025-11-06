@@ -1,0 +1,37 @@
+services:
+  controller:
+    build:
+      context: /home/madp/workspace/ansible-playground
+    container_name: controller
+    hostname: controller
+    environment:
+      - ROLE=controller
+    volumes:
+      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+    ports:
+      - "2222:22"
+
+  worker1:
+    build:
+      context: /home/madp/workspace/ansible-playground
+    container_name: worker1
+    hostname: worker1
+    environment:
+      - ROLE=worker
+    volumes:
+      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
+  worker2:
+    build:
+      context: /home/madp/workspace/ansible-playground
+    container_name: worker2
+    hostname: worker2
+    environment:
+      - ROLE=worker
+    volumes:
+      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
