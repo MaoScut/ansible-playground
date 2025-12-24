@@ -1,2 +1,16 @@
-.ssh-keys/
+# DNAT配置（可选）
+# 如果你有自定义的DNAT配置不想提交到版本控制，取消下面的注释：
+dnat-rules.conf
+
+# Ansible 临时文件
+ansible-project/*.retry
+ansible-project/.ansible/
+ansible-project/**/__pycache__/
+ansible-project/**/*.pyc
+
+# 如果你不想将自己的 ansible 项目提交到版本控制，取消下面的注释：
+# ansible-project/*
+# !ansible-project/.gitkeep
+# !ansible-project/README.md
+
 

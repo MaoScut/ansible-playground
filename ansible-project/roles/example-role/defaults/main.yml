@@ -1,0 +1,6 @@
+---
+# Example role default variables
+
+example_message: "This is an example role"
+example_path: "/tmp/example-role-test"
+

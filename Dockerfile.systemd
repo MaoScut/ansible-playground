@@ -1,17 +1,22 @@
+# 使用 systemd 的 Dockerfile 示例
+# 警告：这会使容器更重，启动更慢，但更接近真实环境
+
 FROM ubuntu:24.04
 
 ARG PYTHON_VERSION=3.12.3
 ARG ANSIBLE_VERSION=9.2.0
-# ARG PYTHON_VERSION=2.7.18
-# ARG ANSIBLE_VERSION=2.9.27
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYENV_ROOT=/opt/pyenv
+    PYENV_ROOT=/opt/pyenv \
+    container=docker
 
 ENV PATH=${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}
 
+# 安装 systemd 和其他依赖
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+       systemd \
+       systemd-sysv \
        build-essential \
        make \
        gcc \
@@ -40,6 +45,20 @@ RUN apt-get update \
        uuid-runtime \
     && rm -rf /var/lib/apt/lists/*
 
+# 清理不必要的 systemd 单元
+RUN cd /lib/systemd/system/sysinit.target.wants/ \
+    && ls | grep -v systemd-tmpfiles-setup | xargs rm -f $1 \
+    && rm -f /lib/systemd/system/multi-user.target.wants/* \
+    && rm -f /etc/systemd/system/*.wants/* \
+    && rm -f /lib/systemd/system/local-fs.target.wants/* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*udev* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*initctl* \
+    && rm -f /lib/systemd/system/basic.target.wants/* \
+    && rm -f /lib/systemd/system/anaconda.target.wants/* \
+    && rm -f /lib/systemd/system/plymouth* \
+    && rm -f /lib/systemd/system/systemd-update-utmp*
+
+# 安装 Python
 RUN git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT} \
     && ${PYENV_ROOT}/bin/pyenv install --skip-existing ${PYTHON_VERSION} \
     && ${PYENV_ROOT}/bin/pyenv global ${PYTHON_VERSION} \
@@ -53,7 +72,6 @@ RUN mkdir -p /etc/profile.d \
     && echo 'export PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:$PATH"' >> /etc/profile.d/pyenv.sh \
     && chmod +x /etc/profile.d/pyenv.sh
 
-# 创建标准的 python/python3 软链接，方便 Ansible 使用
 RUN ln -s /opt/pyenv/shims/python /usr/bin/python \
     && ln -s /opt/pyenv/shims/python /usr/bin/python3 \
     && ln -s /opt/pyenv/shims/pip /usr/bin/pip \
@@ -63,17 +81,14 @@ RUN useradd -ms /bin/bash ansible \
     && echo 'ansible ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ansible \
     && chmod 440 /etc/sudoers.d/ansible
 
-RUN mkdir -p /var/run/sshd
+# 启用 SSH 服务
+RUN systemctl enable ssh
 
-# 复制脚本
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY scripts/fake-systemctl.sh /usr/local/bin/fake-systemctl.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh \
-    && chmod +x /usr/local/bin/fake-systemctl.sh \
-    && ln -sf /usr/local/bin/fake-systemctl.sh /usr/bin/systemctl \
-    && ln -sf /usr/local/bin/fake-systemctl.sh /bin/systemctl
+COPY scripts/entrypoint-systemd.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 22
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# 使用 systemd 作为 init
+CMD ["/lib/systemd/systemd"]
 

@@ -1,0 +1,41 @@
+---
+# 示例 Ansible Playbook
+# 在 controller 中运行: ansible-playbook -i inventory playbook.yml
+
+- name: 测试 Playbook
+  hosts: workers
+  gather_facts: yes
+  
+  tasks:
+    - name: Ping 测试
+      ping:
+      
+    - name: 获取主机信息
+      debug:
+        msg: "主机名: {{ ansible_hostname }}, IP: {{ ansible_default_ipv4.address }}"
+    
+    - name: 检查磁盘使用情况
+      shell: df -h /
+      register: disk_usage
+      
+    - name: 显示磁盘使用
+      debug:
+        var: disk_usage.stdout_lines
+    
+    - name: 创建测试文件
+      copy:
+        content: |
+          这是测试文件
+          创建时间: {{ ansible_date_time.iso8601 }}
+        dest: /tmp/ansible-test.txt
+        mode: '0644'
+    
+    - name: 验证文件创建
+      stat:
+        path: /tmp/ansible-test.txt
+      register: test_file
+      
+    - name: 显示文件状态
+      debug:
+        msg: "文件已创建: {{ test_file.stat.exists }}"
+

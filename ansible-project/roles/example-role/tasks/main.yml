@@ -1,0 +1,19 @@
+---
+# Example role tasks
+
+- name: 示例任务 - 输出消息
+  debug:
+    msg: "Hello from example-role!"
+
+- name: 创建示例目录
+  file:
+    path: /tmp/example-role-test
+    state: directory
+    mode: '0755'
+
+- name: 创建示例文件
+  copy:
+    content: "This is a test file from example-role\n"
+    dest: /tmp/example-role-test/test.txt
+    mode: '0644'
+

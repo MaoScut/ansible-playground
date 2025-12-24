@@ -1,0 +1,10 @@
+---
+# Example role metadata
+
+galaxy_info:
+  author: Ansible Playground
+  description: Example role for demonstration
+  min_ansible_version: 2.9
+
+dependencies: []
+

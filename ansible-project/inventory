@@ -1,0 +1,24 @@
+# Ansible Inventory 示例
+# 使用 DNAT 配置的 IP 地址
+
+# Main 环境 (worker1-3)
+[main]
+10.0.0.1 ansible_user=ansible hostname=worker1
+10.0.0.2 ansible_user=ansible hostname=worker2
+10.0.0.3 ansible_user=ansible hostname=worker3
+
+# DR 环境 (worker4-6)
+[dr]
+10.1.0.1 ansible_user=ansible hostname=worker4
+10.1.0.2 ansible_user=ansible hostname=worker5
+10.1.0.3 ansible_user=ansible hostname=worker6
+
+# 所有 worker 节点
+[workers:children]
+main
+dr
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_python_interpreter=/opt/pyenv/shims/python
+

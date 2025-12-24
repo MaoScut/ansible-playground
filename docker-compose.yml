@@ -1,37 +1,103 @@
 services:
   controller:
     build:
-      context: /home/madp/workspace/ansible-playground
+      context: .
     container_name: controller
     hostname: controller
+    # DNAT 功能需要特权模式或足够的 capabilities
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
     environment:
       - ROLE=controller
+      # DNAT规则配置方式1: 使用配置文件（推荐）
+      # 配置文件: dnat-rules.conf
+      # 
+      # DNAT规则配置方式2: 使用环境变量（可选）
+      # 格式: "源IP:目标主机名,源IP:目标主机名,..."
+      # 例如: - DNAT_RULES=10.0.0.1:worker1,10.0.0.2:worker2
+      #
+      # 注意: 配置文件优先级高于环境变量
     volumes:
-      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+      - ./ssh-keys:/shared-ssh:ro
+      - ./dnat-rules.conf:/etc/dnat-rules.conf:ro
+      # 挂载 Ansible 脚本目录到 controller
+      # 将你的 ansible 项目目录挂载到容器中，方便直接运行 playbook
+      - ./cc-sa:/home/ansible/workspace:rw
     ports:
       - "2222:22"
 
   worker1:
     build:
-      context: /home/madp/workspace/ansible-playground
+      context: .
     container_name: worker1
     hostname: worker1
     environment:
       - ROLE=worker
     volumes:
-      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+      - ./ssh-keys:/shared-ssh:ro
     depends_on:
       - controller
 
   worker2:
     build:
-      context: /home/madp/workspace/ansible-playground
+      context: .
     container_name: worker2
     hostname: worker2
     environment:
       - ROLE=worker
     volumes:
-      - /home/madp/workspace/ansible-playground/.ssh-keys:/shared-ssh:ro
+      - ./ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
+  worker3:
+    build:
+      context: .
+    container_name: worker3
+    hostname: worker3
+    environment:
+      - ROLE=worker
+    volumes:
+      - ./ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
+  worker4:
+    build:
+      context: .
+    container_name: worker4
+    hostname: worker4
+    environment:
+      - ROLE=worker
+    volumes:
+      - ./ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
+  worker5:
+    build:
+      context: .
+    container_name: worker5
+    hostname: worker5
+    environment:
+      - ROLE=worker
+    volumes:
+      - ./ssh-keys:/shared-ssh:ro
+    depends_on:
+      - controller
+
+  worker6:
+    build:
+      context: .
+    container_name: worker6
+    hostname: worker6
+    environment:
+      - ROLE=worker
+    volumes:
+      - ./ssh-keys:/shared-ssh:ro
     depends_on:
       - controller
 

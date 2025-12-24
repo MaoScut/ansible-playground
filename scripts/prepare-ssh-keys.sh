@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-TARGET_DIR="${ROOT_DIR}/.ssh-keys"
+TARGET_DIR="${ROOT_DIR}/ssh-keys"
 KEY_NAME="controller_ed25519"
 KEY_PATH="${TARGET_DIR}/${KEY_NAME}"
 PUB_PATH="${KEY_PATH}.pub"

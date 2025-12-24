@@ -1,0 +1,21 @@
+---
+# 使用 Role 的示例 Playbook
+# 运行: ansible-playbook -i inventory playbook-with-role.yml
+
+- name: 使用 Example Role 的 Playbook
+  hosts: workers
+  gather_facts: yes
+  
+  roles:
+    - example-role
+  
+  tasks:
+    - name: 额外的任务 - 验证 role 执行结果
+      stat:
+        path: /tmp/example-role-test/test.txt
+      register: role_result
+    
+    - name: 显示验证结果
+      debug:
+        msg: "Role 执行成功！文件已创建: {{ role_result.stat.exists }}"
+
